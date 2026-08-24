@@ -5,15 +5,20 @@ PASTES_META_PATH = f"{PASTES_PATH}/meta"
 
 
 def write_metadata(Id, duration):
-    meta = {
-        "id": Id,
-#duration is in hours ofc
-        "duration": duration,
-        "created_at": time.time()
-    }
-    meta_str = json.dumps(meta, indent=4)
-    with open(f"{PASTES_META_PATH}/id.json", "x") as f:
-        f.write(meta_str)
+    try:
+        meta = {
+            "id": Id,
+    #duration is in hours ofc
+            "duration": duration,
+            "created_at": time.time()
+        }
+        meta_str = json.dumps(meta, indent=4)
+        with open(f"{PASTES_META_PATH}/id.json", "x") as f:
+            f.write(meta_str)
+            return True
+    except Exception as e:
+        return False        
+            
         
 def create_paste(id, data):
     try:
