@@ -1,4 +1,3 @@
-"""Paste storage and the expiry cleanup daemon."""
 
 import json
 import os
@@ -21,7 +20,7 @@ SECONDS_PER_HOUR = 60 * 60
 
 
 def write_metadata(id, duration):
-    """Store the paste's expiry information. ``duration`` is in hours."""
+
     try:
         if duration < 0:
             return False
@@ -52,7 +51,6 @@ def read_paste(id):
 
 
 def cleanup_expired_pastes(now=None, pastes_path=None, metadata_path=None):
-    """Delete expired paste files and their metadata, returning the count."""
     paste_dir = Path(pastes_path or PASTES_PATH)
     meta_dir = Path(metadata_path or PASTES_META_PATH)
     current_time = time.time() if now is None else now
@@ -84,7 +82,6 @@ def cleanup_expired_pastes(now=None, pastes_path=None, metadata_path=None):
 
 
 def cleanup_daemon(interval=60, stop_event=None):
-    """Run cleanup periodically until ``stop_event`` is set."""
     if interval <= 0:
         raise ValueError("interval must be greater than zero")
     stop_event = stop_event or threading.Event()
@@ -94,7 +91,6 @@ def cleanup_daemon(interval=60, stop_event=None):
 
 
 def start_cleanup_daemon(interval=60):
-    """Start the cleanup daemon and return ``(thread, stop_event)``."""
     stop_event = threading.Event()
     thread = threading.Thread(
         target=cleanup_daemon,
@@ -143,7 +139,6 @@ def view_paste_route(paste_id):
 
 
 def run_server(host="127.0.0.1", port=8000, cleanup_interval=60):
-    """Run the HTTP server and cleanup daemon until interrupted."""
     cleanup_thread, stop_event = start_cleanup_daemon(cleanup_interval)
     try:
         uvicorn.run(app, host=host, port=port)
