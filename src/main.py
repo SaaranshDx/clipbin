@@ -121,8 +121,10 @@ def create_paste_route(payload: PasteCreateRequest):
     duration = payload.duration
     paste_id = payload.id or uuid.uuid4().hex
     valid_id = Path(paste_id).name == paste_id
-    if not data or duration < 0 or not valid_id:
-        raise HTTPException(status_code=400, detail="invalid paste data, duration, or id")
+    if not data or not valid_id:
+        raise HTTPException(status_code=400, detail="invalid paste data or id")
+    if not duration:
+        duration = 168
 
     if not create_paste(paste_id, data) or not write_metadata(paste_id, duration):
         raise HTTPException(status_code=409, detail="paste id already exists")
