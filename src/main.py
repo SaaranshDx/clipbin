@@ -7,7 +7,9 @@ import time
 import uuid
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
 import uvicorn
 
@@ -149,6 +151,22 @@ def run_server(host="127.0.0.1", port=8000, cleanup_interval=60):
         stop_event.set()
         cleanup_thread.join(timeout=2)
 
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "error": "Not found File must have expired dummy!"
+            }
+        )
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.detail
+        }
+    )
 
 if __name__ == "__main__":
     run_server()
