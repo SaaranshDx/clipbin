@@ -4,7 +4,11 @@ import json
 import os
 import threading
 import time
+import uuid
+from http import HTTPStatus
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -97,3 +101,87 @@ def start_cleanup_daemon(interval=60):
     )
     thread.start()
     return thread, stop_event
+
+
+class PasteRequestHandler(BaseHTTPRequestHandler):
+    """HTTP routes for creating and viewing pastes."""
+
+    server_version = "Pista/1.0"
+
+    def _send_json(self, status, payload):
+        body = json.dumps(payload).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _paste_id(self, path):
+        prefix = "/pastes/"
+        if not path.startswith(prefix):
+            return None
+        paste_id = unquote(path[len(prefix):])
+        if not paste_id or "/" in paste_id or "\\" in paste_id or paste_id in {".", ".."}:
+            return None
+        return paste_id
+
+    def do_POST(self):
+        if urlsplit(self.path).path != "/pastes":
+            self._send_json(HTTPStatus.NOT_FOUND, {"error": "route not found"})
+            return
+
+        try:
+            content_length = int(self.headers.get("Content-Length", "0"))
+            if content_length <= 0 or content_length > 1_048_576:
+                raise ValueError("request body must be between 1 byte and 1 MiB")
+            payload = json.loads(self.rfile.read(content_length))
+            data = payload["data"]
+            duration = float(payload["duration"])
+            paste_id = payload.get("id") or uuid.uuid4().hex
+            if not isinstance(data, str) or not data:
+                raise ValueError("data must be a non-empty string")
+            if not duration >= 0 or not isinstance(paste_id, str):
+                raise ValueError("duration or id is invalid")
+            if Path(paste_id).name != paste_id:
+                raise ValueError("id must be a filename-safe value")
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+            self._send_json(HTTPStatus.BAD_REQUEST, {"error": "expected data and duration"})
+            return
+
+        if not create_paste(paste_id, data) or not write_metadata(paste_id, duration):
+            self._send_json(HTTPStatus.CONFLICT, {"error": "paste id already exists"})
+            return
+        self._send_json(HTTPStatus.CREATED, {"id": paste_id})
+
+    def do_GET(self):
+        paste_id = self._paste_id(urlsplit(self.path).path)
+        if paste_id is None:
+            self._send_json(HTTPStatus.NOT_FOUND, {"error": "route not found"})
+            return
+        paste = read_paste(paste_id)
+        if paste is False:
+            self._send_json(HTTPStatus.NOT_FOUND, {"error": "paste not found"})
+            return
+        with paste:
+            self._send_json(HTTPStatus.OK, {"id": paste_id, "data": paste.read()})
+
+    def log_message(self, format, *args):
+        return
+
+
+def run_server(host="127.0.0.1", port=8000, cleanup_interval=60):
+    """Run the HTTP server and cleanup daemon until interrupted."""
+    cleanup_thread, stop_event = start_cleanup_daemon(cleanup_interval)
+    server = ThreadingHTTPServer((host, port), PasteRequestHandler)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        stop_event.set()
+        cleanup_thread.join(timeout=2)
+        server.server_close()
+
+
+if __name__ == "__main__":
+    run_server()
