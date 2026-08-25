@@ -135,7 +135,7 @@ def view_paste_route(paste_id):
     if paste is False:
         raise HTTPException(status_code=404, detail="paste not found")
     with paste:
-        return {"id": paste_id, "data": paste.read()}
+        return paste.read()
 
 
 def run_server(host="127.0.0.1", port=8000, cleanup_interval=60):
