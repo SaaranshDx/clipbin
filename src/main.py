@@ -4,9 +4,9 @@ import json
 import os
 import threading
 import time
-import uuid
 from pathlib import Path
-
+import random
+import string
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -119,7 +119,7 @@ class PasteCreateRequest(BaseModel):
 def create_paste_route(payload: PasteCreateRequest):
     data = payload.data
     duration = payload.duration
-    paste_id = payload.id or uuid.uuid4().hex
+    paste_id = payload.id or ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
     valid_id = Path(paste_id).name == paste_id
     if not data or not valid_id:
         raise HTTPException(status_code=400, detail="invalid paste data or id")
