@@ -7,6 +7,7 @@ from pathlib import Path
 import random
 import string
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
@@ -103,6 +104,13 @@ def start_cleanup_daemon(interval=60):
 
 
 app = FastAPI(title="Pista")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:5500"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class PasteCreateRequest(BaseModel):
