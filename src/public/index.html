@@ -25,6 +25,9 @@
           <a href="#" class="icon-btn" title="CLI" onclick="comingSoon(); return false;">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2 3a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3zm2 2v14h16V5H4zm3.5 3.5l4 2.5-4 2.5v-5zm2 4l4-2.5-4-2.5v5z"/></svg>
           </a>
+          <a href="#" class="icon-btn" title="API" onclick="toggleApiModal(); return false;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+          </a>
         </div>
       </header>
       <textarea id="data-feild" placeholder="paste something..."></textarea>
@@ -33,6 +36,79 @@
         <button id="copy-btn" onclick="copyLink()" title="copy link">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16 1H4a1 1 0 0 0-1 1v14h2V3h12V1zm3 4H8a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1zm0 16H8V7h11v14z"/></svg>
         </button>
+      </div>
+    </div>
+    <div class="modal-overlay" id="api-modal" onclick="if(event.target===this)toggleApiModal()">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>API Reference</h2>
+          <button class="modal-close" onclick="toggleApiModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">Base URL: <code>http://127.0.0.1:8000</code></p>
+
+          <div class="endpoint">
+            <div class="endpoint-header">
+              <span class="method post">POST</span>
+              <span class="endpoint-path">/pastes</span>
+            </div>
+            <p class="endpoint-desc">Create a new paste. Returns the paste ID on success.</p>
+
+            <h4>Request Body <span class="badge">JSON</span></h4>
+            <pre><code>{
+  "data": "string  (required) — content of the paste",
+  "duration": "number (required) — lifetime in hours (e.g. 1, 24, 72, 168)",
+  "id": "string (optional) — custom 6-char alphanumeric ID, auto-generated if omitted"
+}</code></pre>
+
+            <h4>Example</h4>
+            <pre><code>curl -X POST http://127.0.0.1:8000/pastes \
+  -H "Content-Type: application/json" \
+  -d '{"data": "hello world", "duration": 168}'</code></pre>
+
+            <h4>Responses</h4>
+            <div class="response">
+              <span class="status success">201 Created</span>
+              <pre><code>{ "id": "A1B2C3" }</code></pre>
+            </div>
+            <div class="response">
+              <span class="status error">400 Bad Request</span>
+              <pre><code>{ "error": "invalid paste data or id" }</code></pre>
+              <p class="response-note">Data is empty or ID contains invalid characters.</p>
+            </div>
+            <div class="response">
+              <span class="status error">409 Conflict</span>
+              <pre><code>{ "error": "paste id already exists" }</code></pre>
+              <p class="response-note">The generated or custom ID collided with an existing paste.</p>
+            </div>
+          </div>
+
+          <div class="endpoint">
+            <div class="endpoint-header">
+              <span class="method get">GET</span>
+              <span class="endpoint-path">/pastes/{paste_id}</span>
+            </div>
+            <p class="endpoint-desc">Retrieve the raw text content of a paste.</p>
+
+            <h4>Path Parameters</h4>
+            <pre><code>paste_id — string — the 6-char paste ID</code></pre>
+
+            <h4>Example</h4>
+            <pre><code>curl http://127.0.0.1:8000/pastes/A1B2C3</code></pre>
+
+            <h4>Responses</h4>
+            <div class="response">
+              <span class="status success">200 OK</span>
+              <pre><code>hello world</code></pre>
+              <p class="response-note">Returns raw plain text, not JSON.</p>
+            </div>
+            <div class="response">
+              <span class="status error">404 Not Found</span>
+              <pre><code>{ "error": "Not found File must have expired dummy!" }</code></pre>
+              <p class="response-note">Paste does not exist or has expired.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <script src="index.js"></script>

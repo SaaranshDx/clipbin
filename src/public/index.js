@@ -20,6 +20,16 @@ function comingSoon() {
     showToast('coming soon');
 }
 
+function toggleApiModal() {
+    document.getElementById('api-modal').classList.toggle('open');
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        document.getElementById('api-modal').classList.remove('open');
+    }
+});
+
 async function uploadPaste() {
     const data = document.getElementById('data-feild').value.trim();
     const duration = document.getElementById('duration').value;
