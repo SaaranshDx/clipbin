@@ -1,5 +1,6 @@
 
 import json
+import html
 import os
 import threading
 import time
@@ -145,6 +146,44 @@ def view_paste_route(paste_id):
     with paste:
         return paste.read()
 
+@app.get("/{pasteid}")
+def show_raw_paste(pasteid):
+    if Path(pasteid).name != pasteid:
+        raise HTTPException(status_code=404, detail="paste not found")
+
+    paste = read_paste(pasteid)
+    if paste is False:
+        raise HTTPException(status_code=404, detail="paste not found")
+
+    with paste:
+        content = html.escape(paste.read())
+
+    paste_content_html = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pista</title>
+    <link rel="stylesheet" href="/style.css">
+    </head>
+    <body>
+    <div class="app">
+    <header>
+    <h1>{pasteid}</h1>
+    </header>
+    <main>
+    <pre>{content}</pre>
+    </main>
+    </div>
+    </body>
+    </html>
+    """
+    return paste_content_html.format(
+        content=content,
+        pasteid=html.escape(pasteid),
+    )
+    
 
 def run_server(host="127.0.0.1", port=8000, cleanup_interval=60):
     cleanup_thread, stop_event = start_cleanup_daemon(cleanup_interval)
