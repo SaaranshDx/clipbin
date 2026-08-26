@@ -15,7 +15,7 @@ from pydantic import BaseModel
 import uvicorn
 from fastapi.responses import HTMLResponse
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent
 PASTES_PATH = Path(os.getenv("PISTA_PASTES_PATH", PROJECT_ROOT / "db"))
 PASTES_META_PATH = PASTES_PATH / "meta"
 SECONDS_PER_HOUR = 60 * 60
