@@ -119,6 +119,14 @@ class PasteCreateRequest(BaseModel):
     duration: float
     id: str | None = None
 
+@app.get("/", response_class=HTMLResponse)
+def root():
+    index_path = Path(__file__).resolve().parent / "public" / "index.html"
+    try:
+        with index_path.open(encoding="utf-8") as file:
+            return HTMLResponse(content=file.read(), status_code=200)
+    except OSError:
+        raise HTTPException(status_code=500, detail="looks like smth is fucked")    
 
 @app.post("/pastes", status_code=201)
 def create_paste_route(payload: PasteCreateRequest):
@@ -154,6 +162,15 @@ def styles():
             return Response(content=file.read(), media_type="text/css")
     except OSError:
         raise HTTPException(status_code=404, detail="styles not found")
+
+@app.get("/index", response_class=Response)
+def index_js():
+    index_js_path = Path(__file__).resolve().parent / "public" / "index.js"
+    try:
+        with index_js_path.open(encoding="utf-8") as file:
+            return Response(content=file.read(), media_type="application/javascript")
+    except OSError:
+        raise HTTPException(status_code=404, detail="index.js not found")
 
 @app.get("/{pasteid}", response_class=HTMLResponse)
 def show_raw_paste(pasteid):
