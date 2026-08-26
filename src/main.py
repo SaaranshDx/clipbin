@@ -9,7 +9,7 @@ import random
 import string
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
 import uvicorn
@@ -146,6 +146,15 @@ def view_paste_route(paste_id):
     with paste:
         return paste.read()
 
+@app.get("/styles", response_class=Response)
+def styles():
+    styles_path = Path(__file__).resolve().parent / "public" / "style.css"
+    try:
+        with styles_path.open(encoding="utf-8") as file:
+            return Response(content=file.read(), media_type="text/css")
+    except OSError:
+        raise HTTPException(status_code=404, detail="styles not found")
+
 @app.get("/{pasteid}", response_class=HTMLResponse)
 def show_raw_paste(pasteid):
     if Path(pasteid).name != pasteid:
@@ -165,7 +174,7 @@ def show_raw_paste(pasteid):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>pista</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/styles">
     </head>
     <body>
     <div class="app">
@@ -184,6 +193,7 @@ def show_raw_paste(pasteid):
         pasteid=html.escape(pasteid),
     )
     
+
 
 def run_server(host="127.0.0.1", port=8000, cleanup_interval=60):
     cleanup_thread, stop_event = start_cleanup_daemon(cleanup_interval)
