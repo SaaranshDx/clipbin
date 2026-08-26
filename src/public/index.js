@@ -1,4 +1,4 @@
-const API = 'http://127.0.0.1:8000';
+const API = window.location.href;
 
 function showToast(message, isError) {
     const toast = document.getElementById('toast');
@@ -40,7 +40,7 @@ async function uploadPaste() {
     }
 
     try {
-        const response = await fetch(`${API}/pastes`, {
+        const response = await fetch(`/pastes`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ data, duration: Number(duration) })
@@ -52,6 +52,7 @@ async function uploadPaste() {
         }
 
         const result = await response.json();
+        console.log(result)
         const url = `${API}/${result.id}`;
         document.getElementById('paste-url').value = url;
         document.getElementById('result').hidden = false;
