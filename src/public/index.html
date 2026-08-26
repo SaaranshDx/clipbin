@@ -3,13 +3,30 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>pista - share text like never befour</title>
+    <title>pista</title>
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <button type="button", id="submit-data" onclick="uploadPaste()">Upload</button>
-    <textarea name="data" id="data-feild"></textarea>
+    <div id="toast"></div>
+    <div class="app">
+      <header>
+        <h1>pista</h1>
+        <div class="controls">
+          <select id="duration">
+            <option value="1">1 hour</option>
+            <option value="24">24 hours</option>
+            <option value="72">3 days</option>
+            <option value="168" selected>7 days</option>
+          </select>
+          <button id="submit-data" onclick="uploadPaste()">create paste</button>
+        </div>
+      </header>
+      <textarea id="data-feild" placeholder="paste something..."></textarea>
+      <div class="result" id="result" hidden>
+        <input type="text" id="paste-url" readonly>
+        <button id="copy-btn" onclick="copyLink()">copy</button>
+      </div>
+    </div>
     <script src="index.js"></script>
   </body>
 </html>

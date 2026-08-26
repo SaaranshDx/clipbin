@@ -1,0 +1,144 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #000;
+    color: #fff;
+    font-family: monospace;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #333;
+}
+
+h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+select {
+    background: #000;
+    color: #fff;
+    border: 1px solid #444;
+    padding: 6px 10px;
+    font-family: monospace;
+    font-size: 13px;
+    cursor: pointer;
+    outline: none;
+}
+
+select:hover {
+    border-color: #888;
+}
+
+select:focus {
+    border-color: #fff;
+}
+
+button {
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 6px 14px;
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+}
+
+button:hover {
+    background: #ccc;
+}
+
+button:active {
+    background: #999;
+}
+
+textarea {
+    flex: 1;
+    width: 100%;
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 16px;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+}
+
+textarea::placeholder {
+    color: #555;
+}
+
+.result {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 8px;
+    border-top: 1px solid #333;
+}
+
+.result input {
+    flex: 1;
+    background: #111;
+    color: #fff;
+    border: 1px solid #333;
+    padding: 8px 12px;
+    font-family: monospace;
+    font-size: 13px;
+    outline: none;
+}
+
+.result input:focus {
+    border-color: #fff;
+}
+
+#toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    color: #000;
+    padding: 10px 20px;
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: 600;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 100;
+}
+
+#toast.show {
+    opacity: 1;
+}
+
+#toast.error {
+    background: #c00;
+    color: #fff;
+}
