@@ -1,4 +1,4 @@
-# pista
+# Clipbin
 Share text like never befour
 
 ## HTTP API

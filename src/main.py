@@ -97,14 +97,14 @@ def start_cleanup_daemon(interval=60):
     thread = threading.Thread(
         target=cleanup_daemon,
         args=(interval, stop_event),
-        name="pista-paste-cleanup",
+        name="clipbin-paste-cleanup",
         daemon=True,
     )
     thread.start()
     return thread, stop_event
 
 
-app = FastAPI(title="Pista")
+app = FastAPI(title="clipbin")
 
 app.add_middleware(
     CORSMiddleware,
@@ -173,18 +173,29 @@ def show_raw_paste(pasteid):
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pista</title>
+    <title>clipbin - {pasteid}</title>
     <link rel="stylesheet" href="/styles">
     </head>
     <body>
     <div class="app">
     <header>
     <h1>{pasteid}</h1>
+    <button onclick="copyPaste()">copy</button>
     </header>
-    <main>
+    <main class="paste-content">
     <pre>{content}</pre>
     </main>
     </div>
+    <script>
+    function copyPaste() {{
+        const text = document.querySelector('pre').textContent;
+        navigator.clipboard.writeText(text).then(() => {{
+            const btn = document.querySelector('header button');
+            btn.textContent = 'copied';
+            setTimeout(() => {{ btn.textContent = 'copy'; }}, 2000);
+        }});
+    }}
+    </script>
     </body>
     </html>
     """
