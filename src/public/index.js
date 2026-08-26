@@ -38,7 +38,7 @@ async function uploadPaste() {
         }
 
         const result = await response.json();
-        const url = `${API}/pastes/${result.id}`;
+        const url = `${API}/${result.id}`;
         document.getElementById('paste-url').value = url;
         document.getElementById('result').hidden = false;
         showToast('paste created');
