@@ -16,6 +16,10 @@ function copyLink() {
     });
 }
 
+function comingSoon() {
+    showToast('coming soon');
+}
+
 async function uploadPaste() {
     const data = document.getElementById('data-feild').value.trim();
     const duration = document.getElementById('duration').value;

@@ -77,6 +77,25 @@ button:active {
     background: #999;
 }
 
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: transparent;
+    border: 1px solid #444;
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 0;
+}
+
+.icon-btn:hover {
+    border-color: #fff;
+    background: #111;
+}
+
 textarea {
     flex: 1;
     width: 100%;
