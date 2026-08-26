@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
 import uvicorn
-
+from fastapi.responses import HTMLResponse
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PASTES_PATH = Path(os.getenv("PISTA_PASTES_PATH", PROJECT_ROOT / "db"))
@@ -146,7 +146,7 @@ def view_paste_route(paste_id):
     with paste:
         return paste.read()
 
-@app.get("/{pasteid}")
+@app.get("/{pasteid}", response_class=HTMLResponse)
 def show_raw_paste(pasteid):
     if Path(pasteid).name != pasteid:
         raise HTTPException(status_code=404, detail="paste not found")
