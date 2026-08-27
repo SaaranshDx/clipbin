@@ -52,6 +52,18 @@ def read_paste(id):
         return False
 
 
+def is_encrypted_payload(data):
+    try:
+        payload = json.loads(data)
+        return isinstance(payload, dict) and (
+            payload.get("version") == 1
+            and payload.get("algorithm") == "AES-GCM"
+            and payload.get("kdf") == "PBKDF2-SHA-256"
+        )
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return False
+
+
 def cleanup_expired_pastes(now=None, pastes_path=None, metadata_path=None):
     paste_dir = Path(pastes_path or PASTES_PATH)
     meta_dir = Path(metadata_path or PASTES_META_PATH)
@@ -111,6 +123,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Paste-Encrypted"],
 )
 
 
@@ -152,7 +165,12 @@ def view_paste_route(paste_id):
     if paste is False:
         raise HTTPException(status_code=404, detail="paste not found")
     with paste:
-        return paste.read()
+        data = paste.read()
+    return Response(
+        content=data,
+        media_type="text/plain",
+        headers={"X-Paste-Encrypted": str(is_encrypted_payload(data)).lower()},
+    )
 
 @app.get("/styles", response_class=Response)
 def styles():
@@ -204,6 +222,7 @@ def show_raw_paste(pasteid):
     <div class="app">
     <header>
     <h1>{pasteid}</h1>
+    <span id="paste-status" class="paste-status">loading</span>
     <button id="copy-button" onclick="copyPaste()" disabled>copy</button>
     </header>
     <main class="paste-content">
@@ -267,7 +286,9 @@ def show_raw_paste(pasteid):
                 throw new Error('paste not found or expired');
             }}
             const payload = await response.text();
-            if (!isEncryptedPaste(payload)) {{
+            const encrypted = response.headers.get('X-Paste-Encrypted') === 'true' || isEncryptedPaste(payload);
+            document.getElementById('paste-status').textContent = encrypted ? 'encrypted' : 'plain text';
+            if (!encrypted) {{
                 content.textContent = payload;
                 document.getElementById('copy-button').disabled = false;
                 return;

@@ -259,6 +259,15 @@ textarea::placeholder {
     color: #aaa;
 }
 
+.paste-status {
+    margin-left: auto;
+    margin-right: 12px;
+    color: #888;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 .key-modal {
     max-width: 400px;
 }
