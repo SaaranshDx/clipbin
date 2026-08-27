@@ -1,4 +1,4 @@
-const API = "https://api.ghostdrop.qzz.io/";
+const API = "https://clipbin.github.io/";
 let encryptionKey = null;
 let encryptionKeyResolver = null;
 
