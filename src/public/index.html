@@ -69,6 +69,30 @@
 
           <div class="endpoint">
             <div class="endpoint-header">
+              <span class="method get">INFO</span>
+              <span class="endpoint-path">Encryption</span>
+            </div>
+            <p class="endpoint-desc">Encryption is optional. Enable the <code>encrypt</code> toggle before creating a paste to open the in-page key popup.</p>
+            <ul class="encryption-list">
+              <li>Content is encrypted in your browser with <code>AES-256-GCM</code>.</li>
+              <li>The key is derived with <code>PBKDF2-SHA-256</code> using 250,000 iterations.</li>
+              <li>A random salt and initialization vector are generated for every paste.</li>
+              <li>The key is never sent to or stored by the API. Losing it means the paste cannot be decrypted.</li>
+            </ul>
+            <p class="response-note">When encryption is enabled, the API stores the following JSON envelope as the <code>data</code> string:</p>
+            <pre><code>{
+  "version": 1,
+  "algorithm": "AES-GCM",
+  "kdf": "PBKDF2-SHA-256",
+  "iterations": 250000,
+  "salt": "base64",
+  "iv": "base64",
+  "ciphertext": "base64"
+}</code></pre>
+          </div>
+
+          <div class="endpoint">
+            <div class="endpoint-header">
               <span class="method post">POST</span>
               <span class="endpoint-path">/pastes</span>
             </div>
@@ -76,7 +100,7 @@
 
             <h4>Request Body <span class="badge">JSON</span></h4>
             <pre><code>{
-  "data": "string  (required) — content of the paste",
+  "data": "string  (required) — plaintext or encrypted JSON envelope",
   "duration": "number (required) — lifetime in hours (e.g. 1, 24, 72, 168)",
   "id": "string (optional) — custom 6-char alphanumeric ID, auto-generated if omitted"
 }</code></pre>
@@ -120,7 +144,7 @@
             <div class="response">
               <span class="status success">200 OK</span>
               <pre><code>hello world</code></pre>
-              <p class="response-note">Returns raw text, not JSON. The <code>X-Paste-Encrypted</code> response header is <code>true</code> for encrypted pastes.</p>
+              <p class="response-note">Returns raw text, not JSON. The <code>X-Paste-Encrypted</code> response header is <code>true</code> for encrypted pastes. The HTML paste view opens a key popup only when this header is <code>true</code>.</p>
             </div>
             <div class="response">
               <span class="status error">404 Not Found</span>

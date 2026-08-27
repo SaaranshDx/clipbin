@@ -404,6 +404,15 @@ code {
     margin-top: 2px;
 }
 
+.encryption-list {
+    margin: 0 0 12px 18px;
+    color: #aaa;
+}
+
+.encryption-list li {
+    margin-bottom: 4px;
+}
+
 .badge {
     font-size: 10px;
     background: #222;
