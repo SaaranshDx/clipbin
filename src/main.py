@@ -172,6 +172,15 @@ def index_js():
     except OSError:
         raise HTTPException(status_code=404, detail="index.js not found")
 
+@app.get("/crypto", response_class=Response)
+def crypto_js():
+    crypto_js_path = Path(__file__).resolve().parent / "public" / "crypto.js"
+    try:
+        with crypto_js_path.open(encoding="utf-8") as file:
+            return Response(content=file.read(), media_type="application/javascript")
+    except OSError:
+        raise HTTPException(status_code=404, detail="crypto.js not found")
+
 @app.get("/{pasteid}", response_class=HTMLResponse)
 def show_raw_paste(pasteid):
     if Path(pasteid).name != pasteid:
