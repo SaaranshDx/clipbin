@@ -39,11 +39,21 @@ async function uploadPaste() {
         return;
     }
 
+    const key = window.prompt('Enter an encryption key for this paste:');
+    if (key === null) {
+        return;
+    }
+    if (!key) {
+        showToast('encryption key is required', true);
+        return;
+    }
+
     try {
+        const encryptedData = await encryptPaste(data, key);
         const response = await fetch(`/pastes`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data, duration: Number(duration) })
+            body: JSON.stringify({ data: encryptedData, duration: Number(duration) })
         });
 
         if (!response.ok) {
@@ -52,7 +62,6 @@ async function uploadPaste() {
         }
 
         const result = await response.json();
-        console.log(result)
         const url = `${API}${result.id}`;
         document.getElementById('paste-url').value = url;
         document.getElementById('result').hidden = false;
