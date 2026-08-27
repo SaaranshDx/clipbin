@@ -57,6 +57,20 @@ select:focus {
     border-color: #fff;
 }
 
+.toggle-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #aaa;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.toggle-control input {
+    accent-color: #fff;
+    cursor: pointer;
+}
+
 button {
     background: #fff;
     color: #000;
@@ -243,6 +257,37 @@ textarea::placeholder {
 .modal-desc {
     margin-bottom: 16px;
     color: #aaa;
+}
+
+.key-modal {
+    max-width: 400px;
+}
+
+.modal-input {
+    width: 100%;
+    background: #000;
+    color: #fff;
+    border: 1px solid #444;
+    padding: 9px 10px;
+    font-family: monospace;
+    font-size: 13px;
+    outline: none;
+}
+
+.modal-input:focus {
+    border-color: #fff;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.button-secondary {
+    background: #222;
+    color: #fff;
 }
 
 code {

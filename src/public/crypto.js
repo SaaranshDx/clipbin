@@ -1,6 +1,17 @@
 const ENCRYPTION_VERSION = 1;
 const PBKDF2_ITERATIONS = 250000;
 
+function isEncryptedPaste(payload) {
+    try {
+        const encrypted = JSON.parse(payload);
+        return encrypted.version === ENCRYPTION_VERSION &&
+            encrypted.algorithm === 'AES-GCM' &&
+            encrypted.kdf === 'PBKDF2-SHA-256';
+    } catch {
+        return false;
+    }
+}
+
 function bytesToBase64(bytes) {
     let binary = '';
     bytes.forEach((byte) => { binary += String.fromCharCode(byte); });

@@ -207,33 +207,82 @@ def show_raw_paste(pasteid):
     <button id="copy-button" onclick="copyPaste()" disabled>copy</button>
     </header>
     <main class="paste-content">
-    <pre id="paste-content">enter the key to decrypt this paste</pre>
+    <pre id="paste-content">loading paste...</pre>
     </main>
+    </div>
+    <div class="modal-overlay" id="decryption-modal" onclick="if(event.target===this)cancelDecryption()">
+      <div class="modal key-modal">
+        <div class="modal-header">
+          <h2>Decrypt paste</h2>
+          <button class="modal-close" onclick="cancelDecryption()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">Enter the key used when this paste was created.</p>
+          <input id="decryption-key" class="modal-input" type="password" placeholder="encryption key" autocomplete="current-password">
+          <p id="decryption-error" class="modal-desc" hidden>wrong key</p>
+          <div class="modal-actions">
+            <button class="button-secondary" onclick="cancelDecryption()">cancel</button>
+            <button onclick="confirmDecryption()">decrypt</button>
+          </div>
+        </div>
+      </div>
     </div>
     <script src="/crypto"></script>
     <script>
+    let decryptionKeyResolver = null;
+
+    function requestDecryptionKey() {{
+        const modal = document.getElementById('decryption-modal');
+        const input = document.getElementById('decryption-key');
+        document.getElementById('decryption-error').hidden = true;
+        input.value = '';
+        modal.classList.add('open');
+        setTimeout(() => input.focus(), 0);
+        return new Promise((resolve) => {{ decryptionKeyResolver = resolve; }});
+    }}
+
+    function closeDecryptionModal() {{
+        document.getElementById('decryption-modal').classList.remove('open');
+        decryptionKeyResolver = null;
+    }}
+
+    function confirmDecryption() {{
+        const key = document.getElementById('decryption-key').value;
+        if (!key) return;
+        if (decryptionKeyResolver) decryptionKeyResolver(key);
+        closeDecryptionModal();
+    }}
+
+    function cancelDecryption() {{
+        if (decryptionKeyResolver) decryptionKeyResolver(null);
+        closeDecryptionModal();
+    }}
+
     async function loadPaste() {{
         const content = document.getElementById('paste-content');
-        const key = window.prompt('Enter the key to decrypt this paste:');
-        if (key === null) {{
-            content.textContent = 'decryption cancelled';
-            return;
-        }}
-        if (!key) {{
-            content.textContent = 'an encryption key is required';
-            return;
-        }}
-
         try {{
             const pasteId = window.location.pathname.split('/').filter(Boolean).pop();
             const response = await fetch(`/pastes/${{encodeURIComponent(pasteId)}}`);
             if (!response.ok) {{
                 throw new Error('paste not found or expired');
             }}
-            const plaintext = await decryptPaste(await response.text(), key);
+            const payload = await response.text();
+            if (!isEncryptedPaste(payload)) {{
+                content.textContent = payload;
+                document.getElementById('copy-button').disabled = false;
+                return;
+            }}
+
+            const key = await requestDecryptionKey();
+            if (!key) {{
+                content.textContent = 'decryption cancelled';
+                return;
+            }}
+            const plaintext = await decryptPaste(payload, key);
             content.textContent = plaintext;
             document.getElementById('copy-button').disabled = false;
         }} catch (error) {{
+            document.getElementById('decryption-error').hidden = false;
             content.textContent = 'wrong key or corrupted paste';
         }}
     }}
