@@ -1,4 +1,4 @@
-const API = "https://clipbin.github.io";
+const API = "https://clipbin.github.io/";
 
 function showToast(message, isError) {
     const toast = document.getElementById('toast');
