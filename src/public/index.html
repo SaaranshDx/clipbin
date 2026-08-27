@@ -65,7 +65,7 @@
           <button class="modal-close" onclick="toggleApiModal()">&times;</button>
         </div>
         <div class="modal-body">
-          <p class="modal-desc">Base URL: <code>http://127.0.0.1:8000</code></p>
+          <p class="modal-desc">Base URL: <code>https://api.ghostdrop.qzz.io</code></p>
 
           <div class="endpoint">
             <div class="endpoint-header">
@@ -82,7 +82,7 @@
 }</code></pre>
 
             <h4>Example</h4>
-            <pre><code>curl -X POST http://127.0.0.1:8000/pastes \
+            <pre><code>curl -X POST https://api.ghostdrop.qzz.io/pastes \
   -H "Content-Type: application/json" \
   -d '{"data": "hello world", "duration": 168}'</code></pre>
 
@@ -114,7 +114,7 @@
             <pre><code>paste_id — string — the 6-char paste ID</code></pre>
 
             <h4>Example</h4>
-            <pre><code>curl http://127.0.0.1:8000/pastes/A1B2C3</code></pre>
+            <pre><code>curl https://api.ghostdrop.qzz.io/pastes/A1B2C3</code></pre>
 
             <h4>Responses</h4>
             <div class="response">
