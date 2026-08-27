@@ -189,9 +189,7 @@ def show_raw_paste(pasteid):
     paste = read_paste(pasteid)
     if paste is False:
         raise HTTPException(status_code=404, detail="paste not found")
-
-    with paste:
-        content = html.escape(paste.read())
+    paste.close()
 
     paste_content_html = """
     <!DOCTYPE html>
@@ -206,13 +204,40 @@ def show_raw_paste(pasteid):
     <div class="app">
     <header>
     <h1>{pasteid}</h1>
-    <button onclick="copyPaste()">copy</button>
+    <button id="copy-button" onclick="copyPaste()" disabled>copy</button>
     </header>
     <main class="paste-content">
-    <pre>{content}</pre>
+    <pre id="paste-content">enter the key to decrypt this paste</pre>
     </main>
     </div>
+    <script src="/crypto"></script>
     <script>
+    async function loadPaste() {{
+        const content = document.getElementById('paste-content');
+        const key = window.prompt('Enter the key to decrypt this paste:');
+        if (key === null) {{
+            content.textContent = 'decryption cancelled';
+            return;
+        }}
+        if (!key) {{
+            content.textContent = 'an encryption key is required';
+            return;
+        }}
+
+        try {{
+            const pasteId = window.location.pathname.split('/').filter(Boolean).pop();
+            const response = await fetch(`/pastes/${{encodeURIComponent(pasteId)}}`);
+            if (!response.ok) {{
+                throw new Error('paste not found or expired');
+            }}
+            const plaintext = await decryptPaste(await response.text(), key);
+            content.textContent = plaintext;
+            document.getElementById('copy-button').disabled = false;
+        }} catch (error) {{
+            content.textContent = 'wrong key or corrupted paste';
+        }}
+    }}
+
     function copyPaste() {{
         const text = document.querySelector('pre').textContent;
         navigator.clipboard.writeText(text).then(() => {{
@@ -221,12 +246,13 @@ def show_raw_paste(pasteid):
             setTimeout(() => {{ btn.textContent = 'copy'; }}, 2000);
         }});
     }}
+
+    loadPaste();
     </script>
     </body>
     </html>
     """
     return paste_content_html.format(
-        content=content,
         pasteid=html.escape(pasteid),
     )
     
