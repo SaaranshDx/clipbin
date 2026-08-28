@@ -4,12 +4,46 @@ import base64
 import hashlib
 import json
 import os
+from urllib.parse import urlparse
 import requests
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from getpass import getpass
 
 API_URL = "https://api.ghostdrop.qzz.io"
 BASE_URL = "https://clipbin.github.io"
+
+
+def paste_endpoint(reference, parser):
+    if reference.startswith(("http://", "https://")):
+        path = urlparse(reference).path.rstrip("/")
+        paste_id = path.rsplit("/", 1)[-1] if path else ""
+    else:
+        paste_id = reference
+
+    if not paste_id or paste_id in (".", "..") or "/" in paste_id or "\\" in paste_id:
+        parser.error("paste must be an ID or a paste URL")
+    return f"{API_URL}/pastes/{paste_id}"
+
+
+def get_paste(reference, parser):
+    try:
+        response = requests.get(
+            paste_endpoint(reference, parser), timeout=15, allow_redirects=True
+        )
+    except requests.exceptions.RequestException as error:
+        print(f"Error: could not reach API: {error}", file=sys.stderr)
+        return 1
+
+    if not response.ok:
+        try:
+            error = response.json().get("error", "paste not found or expired")
+        except (ValueError, AttributeError):
+            error = response.text.strip() or "paste not found or expired"
+        print(f"Error: {error}", file=sys.stderr)
+        return 1
+
+    sys.stdout.write(response.text)
+    return 0
 
 def positive_duration(value):
     try:
@@ -26,10 +60,23 @@ def main():
         prog="clipbin",
         description="share text like never befour"
     )    
+    parser.add_argument("command", nargs="?")
+    parser.add_argument("reference", nargs="?")
     parser.add_argument("--encrypt", action="store_true")
     parser.add_argument("--duration", type=positive_duration, default=168)
 
     args = parser.parse_args()
+
+    if args.command == "get":
+        if not args.reference:
+            parser.error("get requires a paste ID or URL")
+        if args.encrypt:
+            parser.error("--encrypt cannot be used with get")
+        return get_paste(args.reference, parser)
+    if args.command is not None:
+        parser.error(f"unknown command: {args.command}")
+    if args.reference is not None:
+        parser.error("positional arguments are only valid with get")
         
     if sys.stdin.isatty():
         parser.error("no input received; pipe text into clipbin")
