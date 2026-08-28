@@ -141,6 +141,15 @@ def root():
     except OSError:
         raise HTTPException(status_code=500, detail="looks like smth is fucked")    
 
+@app.get("/api", response_class=HTMLResponse)
+def api_docs():
+    api_path = Path(__file__).resolve().parent / "public" / "api.html"
+    try:
+        with api_path.open(encoding="utf-8") as file:
+            return HTMLResponse(content=file.read(), status_code=200)
+    except OSError:
+        raise HTTPException(status_code=500, detail="api documentation not found")
+
 @app.post("/pastes", status_code=201)
 def create_paste_route(payload: PasteCreateRequest):
     data = payload.data

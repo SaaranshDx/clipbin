@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clipbin API Reference</title>
+  <link rel="stylesheet" href="/styles">
+  <style>
+    body { height: auto; min-height: 100vh; overflow: auto; }
+    .api-page { max-width: 900px; margin: 0 auto; padding-bottom: 32px; }
+    .api-page header { position: sticky; top: 0; background: #000; z-index: 1; }
+    .api-page main { padding: 20px 16px; }
+    .api-page h2 { font-size: 18px; margin-bottom: 8px; }
+    .api-page .modal-desc { margin-bottom: 20px; }
+    .api-page a { color: #4eafff; }
+  </style>
+</head>
+<body class="api-page">
+  <header>
+    <h1>CLIPBIN / API</h1>
+    <a class="icon-btn" href="/" aria-label="Back to Clipbin">&#8592;</a>
+  </header>
+  <main>
+    <h2>API Reference</h2>
+    <p class="modal-desc">Base URL: <code>https://api.ghostdrop.qzz.io</code></p>
+
+    <section class="endpoint">
+      <div class="endpoint-header">
+        <span class="method get">INFO</span>
+        <span class="endpoint-path">Encryption</span>
+      </div>
+      <p class="endpoint-desc">Encryption is optional. Encrypted content is supplied as the <code>data</code> string when creating a paste.</p>
+      <ul class="encryption-list">
+        <li>Content is encrypted with <code>AES-256-GCM</code>.</li>
+        <li>The key is derived with <code>PBKDF2-SHA-256</code> using 250,000 iterations.</li>
+        <li>A random salt and initialization vector are generated for every paste.</li>
+        <li>The key is never sent to or stored by the API.</li>
+      </ul>
+      <p class="response-note">Encrypted <code>data</code> uses this JSON envelope:</p>
+      <pre><code>{
+  "version": 1,
+  "algorithm": "AES-GCM",
+  "kdf": "PBKDF2-SHA-256",
+  "iterations": 250000,
+  "salt": "base64",
+  "iv": "base64",
+  "ciphertext": "base64"
+}</code></pre>
+    </section>
+
+    <section class="endpoint">
+      <div class="endpoint-header">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/pastes</span>
+      </div>
+      <p class="endpoint-desc">Create a new paste. Returns the paste ID on success.</p>
+      <h4>Request Body <span class="badge">JSON</span></h4>
+      <pre><code>{
+  "data": "string (required) — plaintext or encrypted JSON envelope",
+  "duration": "number (required) — lifetime in hours (e.g. 1, 24, 72, 168)",
+  "id": "string (optional) — custom 6-char alphanumeric ID"
+}</code></pre>
+      <h4>Example</h4>
+      <pre><code>curl -X POST https://api.ghostdrop.qzz.io/pastes \
+  -H "Content-Type: application/json" \
+  -d '{"data":"hello world","duration":168}'</code></pre>
+      <h4>Responses</h4>
+      <div class="response"><span class="status success">201 Created</span><pre><code>{ "id": "A1B2C3" }</code></pre></div>
+      <div class="response"><span class="status error">400 Bad Request</span><pre><code>{ "error": "invalid paste data or id" }</code></pre></div>
+      <div class="response"><span class="status error">409 Conflict</span><pre><code>{ "error": "paste id already exists" }</code></pre></div>
+    </section>
+
+    <section class="endpoint">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/pastes/{paste_id}</span>
+      </div>
+      <p class="endpoint-desc">Retrieve the raw text content of a paste.</p>
+      <h4>Path Parameters</h4>
+      <pre><code>paste_id — string — the 6-char paste ID</code></pre>
+      <h4>Example</h4>
+      <pre><code>curl https://api.ghostdrop.qzz.io/pastes/A1B2C3</code></pre>
+      <h4>Responses</h4>
+      <div class="response">
+        <span class="status success">200 OK</span>
+        <pre><code>hello world</code></pre>
+        <p class="response-note">Returns raw text, not JSON. The <code>X-Paste-Encrypted</code> response header is <code>true</code> for encrypted pastes.</p>
+      </div>
+      <div class="response"><span class="status error">404 Not Found</span><pre><code>{ "error": "paste not found" }</code></pre></div>
+    </section>
+  </main>
+</body>
+</html>
