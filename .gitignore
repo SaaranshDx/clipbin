@@ -4,3 +4,7 @@ __pycache__/
 
 db/*
 src/db/*
+cli/dist/
+cli/clipbin.spec
+cli/build/
+cli/__pycache__/
