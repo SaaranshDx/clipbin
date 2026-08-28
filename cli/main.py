@@ -1,12 +1,14 @@
 import sys
 import argparse
 import base64
+import binascii
 import hashlib
 import json
 import os
 from urllib.parse import urlparse
 import requests
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.exceptions import InvalidTag
 from getpass import getpass
 
 API_URL = "https://api.ghostdrop.qzz.io"
@@ -40,10 +42,31 @@ def get_paste(reference, parser):
         except (ValueError, AttributeError):
             error = response.text.strip() or "paste not found or expired"
         print(f"Error: {error}", file=sys.stderr)
-        return 1
+        return None
 
-    sys.stdout.write(response.text)
-    return 0
+    return response.text
+
+
+def decrypt_paste(payload, passphrase):
+    encrypted = json.loads(payload)
+    if (
+        encrypted.get("version") != 1
+        or encrypted.get("algorithm") != "AES-GCM"
+        or encrypted.get("kdf") != "PBKDF2-SHA-256"
+        or encrypted.get("iterations") != 250000
+    ):
+        raise ValueError("unsupported encrypted paste")
+
+    salt = base64.b64decode(encrypted["salt"], validate=True)
+    iv = base64.b64decode(encrypted["iv"], validate=True)
+    ciphertext = base64.b64decode(encrypted["ciphertext"], validate=True)
+    if len(salt) != 16 or len(iv) != 12:
+        raise ValueError("invalid encrypted paste")
+    encryption_key = hashlib.pbkdf2_hmac(
+        "sha256", passphrase.encode("utf-8"), salt, 250000, dklen=32
+    )
+    plaintext = AESGCM(encryption_key).decrypt(iv, ciphertext, None)
+    return plaintext.decode("utf-8")
 
 def positive_duration(value):
     try:
@@ -63,6 +86,7 @@ def main():
     parser.add_argument("command", nargs="?")
     parser.add_argument("reference", nargs="?")
     parser.add_argument("--encrypt", action="store_true")
+    parser.add_argument("--decrypt", action="store_true")
     parser.add_argument("--duration", type=positive_duration, default=168)
 
     args = parser.parse_args()
@@ -72,11 +96,27 @@ def main():
             parser.error("get requires a paste ID or URL")
         if args.encrypt:
             parser.error("--encrypt cannot be used with get")
-        return get_paste(args.reference, parser)
+        data = get_paste(args.reference, parser)
+        if data is None:
+            return 1
+        if args.decrypt:
+            try:
+                key = getpass("Key: ")
+                if not key:
+                    parser.error("decryption key cannot be empty")
+                data = decrypt_paste(data, key)
+            except (EOFError, OSError, UnicodeError) as error:
+                print(f"Error: could not decrypt paste: {error}", file=sys.stderr)
+                return 1
+            except (AttributeError, InvalidTag, KeyError, TypeError, ValueError, binascii.Error):
+                print("Error: invalid key or encrypted paste", file=sys.stderr)
+                return 1
+        sys.stdout.write(data)
+        return 0
     if args.command is not None:
         parser.error(f"unknown command: {args.command}")
-    if args.reference is not None:
-        parser.error("positional arguments are only valid with get")
+    if args.reference is not None or args.decrypt:
+        parser.error("--decrypt and positional arguments are only valid with get")
         
     if sys.stdin.isatty():
         parser.error("no input received; pipe text into clipbin")
