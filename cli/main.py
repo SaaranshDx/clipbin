@@ -34,7 +34,7 @@ def get_paste(reference, parser):
         )
     except requests.exceptions.RequestException as error:
         print(f"Error: could not reach API: {error}", file=sys.stderr)
-        return 1
+        return None
 
     if not response.ok:
         try:
