@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse, Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
 import uvicorn
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from routes.envy import router as envy
 from fastapi import APIRouter
 
@@ -211,6 +211,14 @@ def crypto_js():
             return Response(content=file.read(), media_type="application/javascript")
     except OSError:
         raise HTTPException(status_code=404, detail="crypto.js not found")
+
+@app.get("/static/{filename}")
+def static_file(filename: str):
+    public_path = (Path(__file__).resolve().parent / "public").resolve()
+    file_path = (public_path / filename).resolve()
+    if public_path not in file_path.parents or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="static file not found")
+    return FileResponse(file_path)
 
 @app.get("/{pasteid}", response_class=HTMLResponse)
 def show_raw_paste(pasteid):
