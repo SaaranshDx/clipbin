@@ -14,6 +14,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
 import uvicorn
 from fastapi.responses import HTMLResponse
+from routes.envy import router as envy
+from fastapi import APIRouter
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 PASTES_PATH = Path(os.getenv("PISTA_PASTES_PATH", PROJECT_ROOT / "db"))
@@ -117,6 +119,8 @@ def start_cleanup_daemon(interval=60):
 
 
 app = FastAPI(title="clipbin")
+
+app.include_router(envy, prefix="/envy", tags=["envy"])
 
 app.add_middleware(
     CORSMiddleware,
